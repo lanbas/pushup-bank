@@ -1,0 +1,46 @@
+#!/bin/bash
+# insta485db
+# Stop on errors
+# See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
+set -Eeuo pipefail
+# Sanity check command line options
+usage() {
+  echo "Usage: $0 (create|destroy|reset|dump)"
+}
+if [ $# -ne 1 ]; then
+  usage
+  exit 1
+fi
+# Parse argument.  $1 is the first argument
+FILE=./sql/bank.db
+case $1 in
+  "create")
+    if test -f "$FILE"; then
+        echo "Error: database already exists."
+    else
+        sqlite3 $FILE < sql/schema.sql
+    fi
+    
+    ;;
+  "destroy")
+    rm -rf $FILE
+    ;;
+  "reset")
+    rm -rf $FILE
+    sqlite3 $FILE < sql/schema.sql
+    sqlite3 $FILE < sql/data.sql
+    ;;
+  "fill")
+    sqlite3 $FILE < sql/data.sql
+    ;;
+  "dump")
+    echo USERS
+    sqlite3 -batch -line sql/bank.db 'SELECT * FROM users'
+    echo TRANSACTIONS
+    sqlite3 -batch -line sql/bank.db 'SELECT * FROM transactions'
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac

@@ -1,0 +1,15 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE users(
+    name VARCHAR(64) PRIMARY KEY NOT NULL,
+    balance INTEGER NOT NULL
+);
+
+CREATE TABLE transactions(
+  transactionid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  amount INTEGER NOT NULL,
+  balance INTEGER NOT NULL,
+  date DATE NOT NULL,
+  user VARCHAR,
+  FOREIGN KEY(user) REFERENCES users(name) -- ON DELETE CASCADE?
+);
