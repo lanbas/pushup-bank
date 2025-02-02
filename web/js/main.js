@@ -41,20 +41,9 @@ if(document.readyState !== 'loading')
 }
 else 
 {
-    // TEST
-    fetch("http://" + location.host + "/transactions/7", {
-            method: "DELETE",
-            headers: {
-                "Content-type": "application/json; charset=UTF-8"
-            }
-        }).then((res) => {
-           console.log("ran");
-        });
-
-    // TEST END
-    // document.addEventListener('DOMContentLoaded', () => {
-    //     initialize();
-    // })
+    document.addEventListener('DOMContentLoaded', () => {
+        initialize();
+    })
 }
 
 function placeDailyPushupElement(numPushups)
