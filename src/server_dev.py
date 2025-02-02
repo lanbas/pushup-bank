@@ -28,22 +28,20 @@ DB_FILE = os.path.join(APP_ROOT, "sql", APP_NAME + ".db")
 db = sqlite3.connect(DB_FILE)
 
 
-###############################
-# GET
-# Get users and their current balances
-###############################
-class User(BaseModel):
-    name: str
-    balance: int
+''' Note on transactions 
+Transactions have had the resulting balance field removed from them
+If we want to allow edits/deletion of a past transaction, we are left with a few options for maintaining correctness in the transaction history: 
+    - Fix up all transactions that occurred later than the corrected transaction
+    - Only allow edits to the most recent transaction
+    - Remove the balance from the transaction item/list and have the user have sole ownership of the balance
+    - Keep the "inconsistency" (resulting balance is, after all, relative to an individual transaction)
 
-# class UserList(BaseModel):
-#     users: list[User]
+As for if we *actually* want to allow edits/deletion of a past transaction:
+    We allow "negative" transactions, and an unintentional transaction could always be rectified with submitting an additional, opposite transaction
+    However, this would result in the transaction history becoming cluttered and meaningless
+    The whole transaction history feature may be unncessary, but it will be interesting and something to implement
+'''
 
-@app.get("/users", response_model=list[User])
-async def get_users() -> list[User]:
-    # Fetch users from database
-    cursor = db.execute(f"SELECT * FROM {DatabaseTables.USERS}")
-    return [User(name=name, balance=balance) for name, balance in cursor.fetchall()]
 
 ###############################
 # GET
@@ -52,14 +50,13 @@ async def get_users() -> list[User]:
 class Transaction(BaseModel):
     user: str
     amount: int
-    balance: int = None
     date: str = None
 
 @app.get("/transactions")
 async def get_transactions() -> list[Transaction]:
     # Fetch transactions from database
     cursor = db.execute(f"SELECT * FROM {DatabaseTables.TRANSACTIONS}")
-    return [Transaction(user=user, amount=amount, balance=balance, date=date) for _, amount, balance, date, user in cursor.fetchall()]
+    return [Transaction(user=user, amount=amount, date=date) for _, amount, date, user in cursor.fetchall()]
 
 ###############################
 # POST
@@ -68,7 +65,7 @@ async def get_transactions() -> list[Transaction]:
 @app.post("/add_transactions")
 async def add_transaction(tx_list: list[Transaction]):
     sql_data = []
-    # For each transaction, generate tuple containing (amount, balance, date, user)
+    # For each transaction, generate tuple containing (amount, date, user)
     for tx in tx_list:
         # Get user's balance
         balance = db.execute(f"SELECT {UserColumns.BALANCE} FROM {DatabaseTables.USERS} WHERE {UserColumns.NAME} = ?", (tx.user,)).fetchone()
@@ -82,22 +79,17 @@ async def add_transaction(tx_list: list[Transaction]):
 
         # Build data tuple
         date = datetime.datetime.now().strftime("%m/%d/%Y")
-        sql_data.append((tx.amount, balance, date, tx.user))
+        sql_data.append((tx.amount, date, tx.user))
 
     # Insert transactions into transaction table after successful modification of user tuple TODO: Should this order be changed? Update balance after committing txs?
-    column_str = f"({TransactionColumns.AMOUNT}, {TransactionColumns.BALANCE}, {TransactionColumns.DATE}, {TransactionColumns.USER})"
-    db.executemany(f"INSERT INTO {DatabaseTables.TRANSACTIONS} {column_str} VALUES (?,?,?,?)", sql_data)
+    column_str = f"({TransactionColumns.AMOUNT}, {TransactionColumns.DATE}, {TransactionColumns.USER})"
+    db.executemany(f"INSERT INTO {DatabaseTables.TRANSACTIONS} {column_str} VALUES (?,?,?)", sql_data)
     db.commit()
 
 ###############################
 # DELETE
 # Delete transaction and update balance
 ###############################
-
-# TODO TODO: Delete of a transaction + update of balance will create a mismatch between later transactions resulting balance
-    # If transaction 10 resulted in 1000 balance, we delete transaction 5 for 100, now when we display transcation 10 resulting balance it won't match current 
-    # balance of 900
-
 @app.delete("/transactions/{id}")
 async def delete_transaction(id: int): # Query parameter user name
     # Fetch transaction amount to know how balance should change
@@ -123,6 +115,23 @@ async def delete_transaction(id: int): # Query parameter user name
     # Remove transaction from transaction table
     db.execute(f"DELETE FROM {DatabaseTables.TRANSACTIONS} WHERE {TransactionColumns.ID} = ?", (id,))
     db.commit()
+
+###############################
+# GET
+# Get users and their current balances
+###############################
+class User(BaseModel):
+    name: str
+    balance: int
+
+# class UserList(BaseModel):
+#     users: list[User]
+
+@app.get("/users", response_model=list[User])
+async def get_users() -> list[User]:
+    # Fetch users from database
+    cursor = db.execute(f"SELECT * FROM {DatabaseTables.USERS}")
+    return [User(name=name, balance=balance) for name, balance in cursor.fetchall()]
 
 ###############################
 # POST

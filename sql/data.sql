@@ -11,17 +11,15 @@ VALUES
         300
     );
 
-INSERT INTO transactions(amount, balance, date, user)
+INSERT INTO transactions(amount, date, user)
 VALUES 
     (
         50,
-        1200,
         '01/15/2025',
         'Tommy'
     ),
     (
         30,
-        300,
         '01/31/2025',
         'Lance'
     );
