@@ -1,37 +1,39 @@
-#title {
-    font-size: 8vw;
-    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-
-    text-align: center;
+#tx-table {
+    max-height: 300px;
+    overflow-y: scroll;
 }
 
-#additionForm {
-    text-align: center;
-    padding-top: 5vw;
-    /* max-width: 20%; */
+#pu-count {
+  width: 60%
 }
 
-#addAmt {
-    width: 10%
+#pu-count p {
+  font-size: 10vh;
+  /* padding: 1px;
+  margin: 1px;
+  margin-block-start: 1px;
+  margin-block-end: 1px; */
 }
 
-#submit {
-    margin: 1%;
+#pu-count-div {
+  margin-bottom: 20px;
 }
 
-.accountText {
-    text-align: center;
+#row2 {
+  margin: 5vw;
+} 
+
+.card {
+  margin: 1vh;
+  /* margin-bottom: 2vh; */
 }
 
-#pushupElt {
-    text-align: center;
-    font-size: 8vw;
-    margin-bottom: 0vw;
-    padding-bottom: 0vw;
+#card-add img {
+  max-width: 128px;
 }
 
-#pushupMsg {
-    text-align: center;
-    margin-top: 0vw;
-    font-size: 18px;
+.card-img-top {
+  max-width: 720px;
+  max-height: 720px;
+  aspect-ratio: 1.0;
 }
