@@ -34,7 +34,7 @@ The server will be accessible on http://localhost:8000/home.
 ### Accessing from a mobile device
 Run the server under production settings: 
 ```
-(env) fastapi run server.py
+(env) fastapi run src/server.py
 ```
 
 The server will be accessible from another device on http://<host computer's IP>:8000/home
