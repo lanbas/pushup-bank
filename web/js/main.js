@@ -61,25 +61,29 @@ function populateDailyCounter(dailyPushups, dateStr)
     progressBarElt.style.width = `${100 * (dailyPushups / 365)}%`; // TODO: Account for leap year
 }
 
+function createTxTableElt(user, amount, date)
+{
+    var userCol = document.createElement('td');
+    userCol.innerText = user;
+    var amountCol = document.createElement('td');
+    amountCol.innerText = amount;
+    var dateCol = document.createElement('td');
+    dateCol.innerText = date;
+
+    var tableRow = document.createElement('tr');
+    tableRow.appendChild(userCol);
+    tableRow.appendChild(amountCol);
+    tableRow.appendChild(dateCol);
+
+    return tableRow;
+}
+
 function populateTxTable(tx_json)
 {
     var prevElt = document.getElementById("table-header");
     for (var tx of tx_json)
     {
-        var userCol = document.createElement('td');
-        userCol.innerText = tx['user'];
-        var amountCol = document.createElement('td');
-        amountCol.innerText = tx['amount'];
-        var dateCol = document.createElement('td');
-        dateCol.innerText = tx['date'];
-
-        var tableRow = document.createElement('tr');
-        tableRow.appendChild(userCol);
-        tableRow.appendChild(amountCol);
-        tableRow.appendChild(dateCol);
-
-        // tableElt = createTxTableElt(user, amount, date)
-
+        var tableRow = createTxTableElt(tx['user'], tx['amount'], tx['date'])
         prevElt.insertAdjacentElement('afterend', tableRow);
         prevElt = tableRow;
     }
