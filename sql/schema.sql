@@ -2,7 +2,8 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE users(
     name VARCHAR(64) PRIMARY KEY NOT NULL UNIQUE,
-    balance INTEGER NOT NULL
+    balance INTEGER NOT NULL,
+    picture VARCHAR(128) NOT NULL
 );
 
 CREATE TABLE transactions(
@@ -10,5 +11,5 @@ CREATE TABLE transactions(
   amount INTEGER NOT NULL,
   date DATE NOT NULL,
   user VARCHAR,
-  FOREIGN KEY(user) REFERENCES users(name) ON DELETE CASCADE?
+  FOREIGN KEY(user) REFERENCES users(name) ON DELETE CASCADE
 );

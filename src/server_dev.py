@@ -55,35 +55,31 @@ class Transaction(BaseModel):
 @app.get("/transactions")
 async def get_transactions() -> list[Transaction]:
     # Fetch transactions from database
-    cursor = db.execute(f"SELECT * FROM {DatabaseTables.TRANSACTIONS}")
+    cursor = db.execute(f"SELECT * FROM {DatabaseTables.TRANSACTIONS} ORDER BY {TransactionColumns.ID} DESC")
     return [Transaction(user=user, amount=amount, date=date) for _, amount, date, user in cursor.fetchall()]
 
 ###############################
 # POST
 # Update balances according to list of transactions, add transactions to table
 ###############################
-@app.post("/add_transactions")
-async def add_transaction(tx_list: list[Transaction]):
-    sql_data = []
-    # For each transaction, generate tuple containing (amount, date, user)
-    for tx in tx_list:
-        # Get user's balance
-        balance = db.execute(f"SELECT {UserColumns.BALANCE} FROM {DatabaseTables.USERS} WHERE {UserColumns.NAME} = ?", (tx.user,)).fetchone()
-        if not balance:
-            raise HTTPException(204, f"Unable to find user {tx.user} while adding transaction") 
+@app.post("/add_transaction")
+async def add_transaction(tx: Transaction):
+    # Get user's balance
+    balance = db.execute(f"SELECT {UserColumns.BALANCE} FROM {DatabaseTables.USERS} WHERE {UserColumns.NAME} = ?", (tx.user,)).fetchone()
+    if not balance:
+        raise HTTPException(204, f"Unable to find user {tx.user} while adding transaction") 
 
-        # Update user balance according to transaction amount
-        balance = balance[0] # In tuple format (balance,)
-        balance += tx.amount
-        db.execute(f"UPDATE {DatabaseTables.USERS} SET {UserColumns.BALANCE} = ? WHERE {UserColumns.NAME} = ?", (balance, tx.user))
+    # Update user balance according to transaction amount
+    balance = balance[0] # In tuple format (balance,)
+    balance += tx.amount
+    db.execute(f"UPDATE {DatabaseTables.USERS} SET {UserColumns.BALANCE} = ? WHERE {UserColumns.NAME} = ?", (balance, tx.user))
 
-        # Build data tuple
-        date = datetime.datetime.now().strftime("%m/%d/%Y")
-        sql_data.append((tx.amount, date, tx.user))
-
+    # Build data tuple
+    date = datetime.datetime.now().strftime("%m/%d/%Y")
+   
     # Insert transactions into transaction table after successful modification of user tuple TODO: Should this order be changed? Update balance after committing txs?
     column_str = f"({TransactionColumns.AMOUNT}, {TransactionColumns.DATE}, {TransactionColumns.USER})"
-    db.executemany(f"INSERT INTO {DatabaseTables.TRANSACTIONS} {column_str} VALUES (?,?,?)", sql_data)
+    db.execute(f"INSERT INTO {DatabaseTables.TRANSACTIONS} {column_str} VALUES (?,?,?)", (tx.amount, date, tx.user))
     db.commit()
 
 ###############################

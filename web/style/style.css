@@ -3,11 +3,11 @@
     overflow-y: scroll;
 }
 
-#pu-count {
+#pu-count-div {
   width: 60%
 }
 
-#pu-count p {
+#pu-count-div p {
   font-size: 10vh;
   /* padding: 1px;
   margin: 1px;
@@ -15,7 +15,7 @@
   margin-block-end: 1px; */
 }
 
-#pu-count-div {
+#col1-div{
   margin-bottom: 20px;
 }
 
@@ -36,4 +36,8 @@
   max-width: 720px;
   max-height: 720px;
   aspect-ratio: 1.0;
+}
+
+.card-body p {
+  font-size: 6vh;
 }
