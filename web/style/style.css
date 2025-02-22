@@ -41,3 +41,24 @@
 .card-body p {
   font-size: 6vh;
 }
+
+#modal-close-btn {
+  display: none;
+}
+
+.modal-header:hover #modal-close-btn {
+  display: inline-block;
+}
+
+.delete-tx-img {
+  width: 1vw;
+  min-width: 24px;
+  max-width: 48px;
+  margin: 0px;
+  padding: 0px;
+}
+
+.delete-tx-col {
+  vertical-align: 'middle';
+  width: 10%;
+}

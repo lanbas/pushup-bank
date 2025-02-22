@@ -38,10 +38,11 @@
       <div class="col-sm-6">
         <div id="tx-table">
           <table class="table table-responsive table-striped">
-            <tr id="table-header">
+            <tr id="table-header" class="text-center">
               <th>User</th>
               <th>Amount</th>
               <th>Date</th>
+              <th></th>
             </tr>        
           </table>
         </div>
@@ -50,7 +51,7 @@
 
     <div id="row2" class="row">
       <div id="card-add" class="col-sm d-flex align-items-center justify-content-center">
-        <a class="btn" data-bs-toggle="modal" data-bs-target="#myModal" target="_blank">
+        <a id="add-user-entry-pt" class="btn" data-bs-toggle="modal" data-bs-target="#myModal" target="_blank">
           <img src="img/add-card.png">
         </a>
       </div>
@@ -69,7 +70,7 @@
         </div>
   
         <!-- Modal body -->
-        <form>
+        <form id="add-user-form">
           <div class="modal-body">
             <div class="mb-3 mt-3">
               <label for="name" class="form-label">Name:</label>
@@ -90,7 +91,7 @@
     
           <!-- Modal footer -->
           <div class="modal-footer">
-            <button id="add-user-btn" type="button" class="btn btn-primary" data-bs-dismiss="modal">Add User</button>
+            <button id="add-user-btn" type="submit" class="btn btn-primary" data-bs-dismiss="modal">Add User</button>
           </div>
         </form>
   

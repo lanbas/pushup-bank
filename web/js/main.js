@@ -28,6 +28,15 @@ const DAY_SUFFIXES = {
     0: TH
 }
 
+function getDateString()
+{
+    let date = new Date();
+    let monthStr = String(date.getMonth()+1).padStart(2,'0');
+    let dayStr = String(date.getDate()).padStart(2,'0')
+    
+    return `${monthStr}/${dayStr}/${date.getFullYear()}`;
+}
+
 function calcDailyPushups(date)
 {
     // Get date information
@@ -70,10 +79,22 @@ function createTxTableElt(user, amount, date)
     var dateCol = document.createElement('td');
     dateCol.innerText = date;
 
+    // Need to tie id in each tx table entry, -- how can i make request to backend to delete specific tx without tx id 
+    var deleteCol = document.createElement('td');
+    var deleteButton = document.createElement('input');
+    deleteButton.type = "image";
+    deleteButton.src = "./img/trash-can-96.png";
+    deleteButton.classList.add("float-start", "delete-tx-img");
+    deleteCol.classList.add("delete-tx-col");
+    deleteCol.appendChild(deleteButton);
+
+
     var tableRow = document.createElement('tr');
+    tableRow.classList.add("text-center")
     tableRow.appendChild(userCol);
     tableRow.appendChild(amountCol);
     tableRow.appendChild(dateCol);
+    tableRow.appendChild(deleteCol);
 
     return tableRow;
 }
@@ -146,14 +167,34 @@ function createCardDiv(user, balance, img_path)
     return cardDiv;
 }
 
-function populateUserCards(user_json)
+function populateUserCards()
 {
     var userRowDiv = document.getElementById("row2");
-    for (var user of user_json)
+    
+    // Ensure all existing cards are cleared (in case this is not the first call)
+    var i = 0;
+    while(i < userRowDiv.children.length)
     {
-        let cardDiv = createCardDiv(user['name'], user['balance'], "./img/tom.jpeg"); // TODO: Add img url to database
-        userRowDiv.insertAdjacentElement('afterbegin', cardDiv);
+        if (userRowDiv.children[i].classList.contains('card'))
+            userRowDiv.children[i].remove();
+        else
+            i++;
     }
+
+    // Fetch known user data
+    fetch("http://" + location.host + "/users",{
+        method: "GET"
+    }).then((response) => response.json())
+    .then((json) => {
+        for (var user of json)
+        {
+            let cardDiv = createCardDiv(user['name'], user['balance'], "./img/tom.jpeg"); // TODO: Add img url to database
+            userRowDiv.insertAdjacentElement('afterbegin', cardDiv);
+        } 
+    })
+    .catch((error) => {
+       console.log(error);
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -182,18 +223,14 @@ function initialize()
     
 
     // Fetch users and populate cards
-    fetch("http://" + location.host + "/users",{
-        method: "GET"
-    }).then((response) => response.json())
-    .then((json) => {
-        populateUserCards(json);
-    })
-    .catch((error) => {
-       console.log(error);
-    });
+    populateUserCards()
 
     // Set event listener for add user button
-    document.addEventListener("click", (event) => {addUser(event)});
+    let addUserForm = document.getElementById("add-user-form");
+    addUserForm.addEventListener("submit", (event) => {addUser(event)});
+
+    let addUserEntryPoint = document.getElementById("add-user-entry-pt");
+    addUserEntryPoint.addEventListener("click", (event) => {dynamicUserFormInfo(event)});
 }
 
 function submitTransaction(event, user)
@@ -232,16 +269,16 @@ function submitTransaction(event, user)
         // If we base updates on current value of an elements inner text, there's nothing stopping someone from
         // editing html then submitting transaction and everything gets messed up because they've messed with innerText 
         // We should refetch current value from backend for user (need endpoint updates)
+            // And we should probably store latest known transaction and add endpoint (or modify existing)
+            // to take in tx id and get all tx with id greater so we can update
 
         // Update number counter (mirror until refresh for now)
         let balanceElt = document.getElementById(`${user}-card-balance`);
         balanceElt.innerText = Number(balanceElt.innerText) + txInt; // TODO: Absolutely needs to change 
 
         // Update tx list
-        let date = new Date();
-        let monthStr = String(date.getMonth()+1).padStart(2,'0');
-        let dayStr = String(date.getDate()).padStart(2,'0')
-        let tableEntryElt = createTxTableElt(user, txInt, `${monthStr}/${dayStr}/${date.getFullYear()}`);
+        let dateStr = getDateString();
+        let tableEntryElt = createTxTableElt(user, txInt, dateStr);
         let tableHeaderElt = document.getElementById("table-header");
         tableHeaderElt.insertAdjacentElement('afterend', tableEntryElt);
 
@@ -257,12 +294,47 @@ function submitTransaction(event, user)
 
 }
 
+function dynamicUserFormInfo(event)
+{
+    event.preventDefault();
+
+    // Fill in dynamic form information
+    let dateStr = getDateString();
+    let numPushups = calcDailyPushups(new Date());
+    document.getElementById("add-user-date").innerText = dateStr;
+    document.getElementById("add-user-cumsum").innerText = (numPushups * (numPushups + 1)) / 2;
+}
+
 function addUser(event)
 {
-    // User already exists
+    // TODO: User already exists + code injection
+    // code injection?
+    event.preventDefault();
+
+    // Get info from form
+    let name = event.target.elements['name'].value;
+    let balance = event.target.elements['balance'].value;
+    let pfpPath = event.target.elements['photo'].value; // TODO
+    
+    fetch("http://" + location.host + "/add_user",{
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({name: name, balance: balance}) // TODO: functionalize to make standard
+    }).then((response) => {
+        populateUserCards(); // Refetches users and builds cards
+
+        // TODO: toast notf
+    })
+    .catch((error) => {
+        // TODO: toast notif
+    });
 }
 
 function spawnToastNotification(msg, level)
 {
     
 }
+
+
