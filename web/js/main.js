@@ -110,6 +110,7 @@ function createCardDiv(user, balance, img_path)
     let cardBalance = document.createElement('p');
     cardBalance.classList.add('card-text');
     cardBalance.innerText = balance;
+    cardBalance.id = `${user}-card-balance`;
 
     let form = document.createElement('form');
 
@@ -228,8 +229,21 @@ function submitTransaction(event, user)
         // Clear submission box
         event.target.elements["addTxInput"].value = "";
 
-        // Update tx list and number counter (mirror until refresh for now)
+        // If we base updates on current value of an elements inner text, there's nothing stopping someone from
+        // editing html then submitting transaction and everything gets messed up because they've messed with innerText 
+        // We should refetch current value from backend for user (need endpoint updates)
 
+        // Update number counter (mirror until refresh for now)
+        let balanceElt = document.getElementById(`${user}-card-balance`);
+        balanceElt.innerText = Number(balanceElt.innerText) + txInt; // TODO: Absolutely needs to change 
+
+        // Update tx list
+        let date = new Date();
+        let monthStr = String(date.getMonth()+1).padStart(2,'0');
+        let dayStr = String(date.getDate()).padStart(2,'0')
+        let tableEntryElt = createTxTableElt(user, txInt, `${monthStr}/${dayStr}/${date.getFullYear()}`);
+        let tableHeaderElt = document.getElementById("table-header");
+        tableHeaderElt.insertAdjacentElement('afterend', tableEntryElt);
 
         // Toast notif saying transaction submitted
         
