@@ -48,6 +48,7 @@ As for if we *actually* want to allow edits/deletion of a past transaction:
 # Get all transactions
 ###############################
 class Transaction(BaseModel):
+    id: int = None # None fields for re-use of structure when posting, deleting, and getting
     user: str
     amount: int
     date: str = None
@@ -56,14 +57,14 @@ class Transaction(BaseModel):
 async def get_transactions() -> list[Transaction]:
     # Fetch transactions from database
     cursor = db.execute(f"SELECT * FROM {DatabaseTables.TRANSACTIONS} ORDER BY {TransactionColumns.ID} DESC")
-    return [Transaction(user=user, amount=amount, date=date) for _, amount, date, user in cursor.fetchall()]
+    return [Transaction(id=id, user=user, amount=amount, date=date) for id, amount, date, user in cursor.fetchall()]
 
 ###############################
 # POST
 # Update balances according to list of transactions, add transactions to table
 ###############################
 @app.post("/add_transaction")
-async def add_transaction(tx: Transaction):
+async def add_transaction(tx: Transaction) -> Transaction:
     # Get user's balance
     balance = db.execute(f"SELECT {UserColumns.BALANCE} FROM {DatabaseTables.USERS} WHERE {UserColumns.NAME} = ?", (tx.user,)).fetchone()
     if not balance:
@@ -81,6 +82,11 @@ async def add_transaction(tx: Transaction):
     column_str = f"({TransactionColumns.AMOUNT}, {TransactionColumns.DATE}, {TransactionColumns.USER})"
     db.execute(f"INSERT INTO {DatabaseTables.TRANSACTIONS} {column_str} VALUES (?,?,?)", (tx.amount, date, tx.user))
     db.commit()
+
+    tx.date = date
+    tx.id = db.execute(f"SELECT max({TransactionColumns.ID}) FROM {DatabaseTables.TRANSACTIONS}").fetchone()[0]
+
+    return tx # Return created tx for proper construction of tx table
 
 ###############################
 # DELETE

@@ -1,3 +1,5 @@
+const TX_TABLE_ENTRY_PREFIX = "tx-table-"
+
 const DAYS_PER_MONTH = {
     0: 0,
     1: 31,
@@ -70,8 +72,10 @@ function populateDailyCounter(dailyPushups, dateStr)
     progressBarElt.style.width = `${100 * (dailyPushups / 365)}%`; // TODO: Account for leap year
 }
 
-function createTxTableElt(user, amount, date)
+function createTxTableElt(id, user, amount, date)
 {
+    var txEltID = TX_TABLE_ENTRY_PREFIX + id; 
+
     var userCol = document.createElement('td');
     userCol.innerText = user;
     var amountCol = document.createElement('td');
@@ -79,17 +83,18 @@ function createTxTableElt(user, amount, date)
     var dateCol = document.createElement('td');
     dateCol.innerText = date;
 
-    // Need to tie id in each tx table entry, -- how can i make request to backend to delete specific tx without tx id 
     var deleteCol = document.createElement('td');
     var deleteButton = document.createElement('input');
     deleteButton.type = "image";
     deleteButton.src = "./img/trash-can-96.png";
     deleteButton.classList.add("float-start", "delete-tx-img");
+    deleteButton.addEventListener("click", (event) => {deleteTransaction(event, txEltID)})
     deleteCol.classList.add("delete-tx-col");
     deleteCol.appendChild(deleteButton);
 
 
     var tableRow = document.createElement('tr');
+    tableRow.id = txEltID
     tableRow.classList.add("text-center")
     tableRow.appendChild(userCol);
     tableRow.appendChild(amountCol);
@@ -104,7 +109,7 @@ function populateTxTable(tx_json)
     var prevElt = document.getElementById("table-header");
     for (var tx of tx_json)
     {
-        var tableRow = createTxTableElt(tx['user'], tx['amount'], tx['date'])
+        var tableRow = createTxTableElt(tx['id'], tx['user'], tx['amount'], tx['date'])
         prevElt.insertAdjacentElement('afterend', tableRow);
         prevElt = tableRow;
     }
@@ -261,8 +266,9 @@ function submitTransaction(event, user)
     }).then((response) => {
         if (Math.floor(response.status / 100) !== 2)
             alert(`Non-200 error code ${response.status} in successful fetch`);
-        // Assume non-error status? 
-
+        else 
+            return response.json();
+    }).then((json) => {
         // Clear submission box
         event.target.elements["addTxInput"].value = "";
 
@@ -278,12 +284,11 @@ function submitTransaction(event, user)
 
         // Update tx list
         let dateStr = getDateString();
-        let tableEntryElt = createTxTableElt(user, txInt, dateStr);
+        let tableEntryElt = createTxTableElt(json['id'], user, txInt, dateStr);
         let tableHeaderElt = document.getElementById("table-header");
         tableHeaderElt.insertAdjacentElement('afterend', tableEntryElt);
 
-        // Toast notif saying transaction submitted
-        
+        // TODO: Toast notif saying transaction submitted
     })
     .catch((error) => {
         // Toast notif
@@ -326,6 +331,35 @@ function addUser(event)
         populateUserCards(); // Refetches users and builds cards
 
         // TODO: toast notf
+    })
+    .catch((error) => {
+        // TODO: toast notif
+    });
+}
+
+function deleteTransaction(event, id)
+{
+    event.preventDefault();
+
+    // Call to remove transaction
+    var txId = String(id).split(TX_TABLE_ENTRY_PREFIX).pop();
+    fetch("http://" + location.host + `/transactions/${txId}`,{
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }).then((response) => {
+        if (response.ok)
+        {
+            // Update transaction table on success
+            var txTableRow = document.getElementById(id);
+            txTableRow.remove();
+
+            // Refetch user cards (TODO: Get more granular way to refresh single user's info)
+            populateUserCards();
+        }
+
+        // TODO: Toast notif
     })
     .catch((error) => {
         // TODO: toast notif

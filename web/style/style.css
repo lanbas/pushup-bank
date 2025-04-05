@@ -62,3 +62,8 @@
   vertical-align: 'middle';
   width: 10%;
 }
+
+th {
+  position: sticky;
+  top: 0;  
+}
