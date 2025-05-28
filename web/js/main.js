@@ -45,7 +45,6 @@ function calcDailyPushups(date)
     let month = date.getMonth();
     let day = date.getDate();
     let year = date.getFullYear();
-    console.log(day);
 
     // Calculate based on months passed + days passed this month
     let numPushups = DAYS_PER_MONTH[month] + day;
@@ -294,8 +293,6 @@ function submitTransaction(event, user)
         // Toast notif
         
     });
-
-    console.log(JSON.stringify({user: user, amount: txInt}));
 
 }
 

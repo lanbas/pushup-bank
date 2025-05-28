@@ -42,6 +42,10 @@
   font-size: 6vh;
 }
 
+.card-title {
+  display: inline-block
+}
+
 #modal-close-btn {
   display: none;
 }
