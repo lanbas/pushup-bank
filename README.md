@@ -1,7 +1,7 @@
 # pushup-bank \[WIP\]
 Online dashboard to track daily push-up challenge and per-user "banked" pushups/transactions. Developed and tested on Ubuntu 22.04 and Python 3.10.12
 
-~[Main landing page of push-up bank website](./img/dashboard.png)
+![Main landing page of push-up bank website](./img/dashboard.png)
 
 #### Setup Environment
 
