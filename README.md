@@ -1,8 +1,7 @@
 # pushup-bank
-beefy boy bank branch
+Online dashboard to track daily push-up challenge and per-user "banked" pushups/transactions. Developed and tested on Ubuntu 22.04 and Python 3.10.12
 
-### Contributing 
-Initial development has been developed and tested on Ubuntu 22.04 and Python 3.10.12
+~[Main landing page of push-up bank website](./img/dashboard.png)
 
 #### Setup Environment
 
@@ -17,24 +16,23 @@ python3 -m venv env
 source env/bin/activate
 ```
 
-
 #### Install dependencies via ```pip```
 ```
-(env) python3 -m pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 ### Test Installation
 Once the dependencies have been installed, the follow command should run the server: 
 ```
-(env) fastapi dev server.py
+fastapi dev server.py
 ```
 
 The server will be accessible on http://localhost:8000/home.
 
-### Accessing from a mobile device
+### Accessing from a alternate devices
 Run the server under production settings: 
 ```
-(env) fastapi run src/server.py
+fastapi run src/server.py
 ```
 
 The server will be accessible from another device on http://<host computer's IP>:8000/home
