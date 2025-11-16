@@ -26,6 +26,7 @@ app.add_middleware(
 # Database configuration
 DB_FILE = os.path.join(APP_ROOT, "sql", APP_NAME + ".db")
 db = sqlite3.connect(DB_FILE)
+db.execute("PRAGMA foreign_keys = ON;")
 
 
 ''' Note on transactions 

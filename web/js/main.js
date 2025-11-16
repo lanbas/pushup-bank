@@ -116,9 +116,11 @@ function populateTxTable(tx_json)
 
 function createCardDiv(user, balance, img_path)
 {
+    //img-wrapper + img + img-overlay (which includes button)
     // Create all elements needed for card div
     let cardDiv = document.createElement('div');
     cardDiv.classList.add('card', 'col-sm', 'px-0');
+    cardDiv.id = `card-${user}`;
 
     let imgDiv = document.createElement('img');
     imgDiv.classList.add('card-img-top');
@@ -154,6 +156,11 @@ function createCardDiv(user, balance, img_path)
     submitButton.type = 'submit';
     submitButton.innerText = 'Submit';
 
+    let deleteUserBtn = document.createElement('a');
+    deleteUserBtn.classList.add('delete-user');
+    deleteUserBtn.innerText = "Delete User";
+    deleteUserBtn.addEventListener("click", (event) => {deleteUser(event, user)});
+
     // Slap it all together
     txDiv.appendChild(txInput);
     txDiv.appendChild(submitButton);
@@ -164,6 +171,7 @@ function createCardDiv(user, balance, img_path)
     cardBodyDiv.appendChild(nameHeader);
     cardBodyDiv.appendChild(cardBalance);
     cardBodyDiv.appendChild(form);
+    cardBodyDiv.appendChild(deleteUserBtn);
 
     cardDiv.appendChild(imgDiv);
     cardDiv.appendChild(cardBodyDiv);
@@ -360,6 +368,44 @@ function deleteTransaction(event, id)
     })
     .catch((error) => {
         // TODO: toast notif
+    });
+}
+
+function deleteUser(event, user)
+{
+    event.preventDefault();
+
+    fetch("http://" + location.host + `/users/${user}`,{
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    }).then((response) => {
+        if (Math.floor(response.status / 100) !== 2)
+            alert(`Non-200 error code ${response.status} in successful fetch`);
+        else 
+            return response.json();
+    }).then((json) => {
+        // Remove user card
+        var card = document.getElementById(`card-${user}`);
+        card.remove();
+
+        // Reload transaction table, which has been cleared of deleted user transactions
+        fetch("http://" + location.host + "/transactions",{
+            method: "GET"
+        }).then((response) => response.json())
+        .then((json) => {
+            let table = document.getElementById('tx-table').firstElementChild.firstElementChild;
+            while(table.children.length > 1)
+            {
+                table.children.item(1).remove(); // TODO: Improve ID or other attached info to allow deletion of only transactions belonging to deleted user
+            }
+
+            populateTxTable(json);
+        })
+        .catch((error) => {
+            console.log(error);
+        });
     });
 }
 

@@ -28,6 +28,7 @@
   /* margin-bottom: 2vh; */
 }
 
+
 #card-add img {
   max-width: 128px;
 }
@@ -38,12 +39,18 @@
   aspect-ratio: 1.0;
 }
 
-.card-body p {
+.card-text {
   font-size: 6vh;
 }
 
 .card-title {
   display: inline-block
+}
+
+.delete-user {
+  font-size: 75%;
+  color: red;
+  margin: 0px;
 }
 
 #modal-close-btn {
