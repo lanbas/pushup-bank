@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Annotated
 
 from db_types import *
 
@@ -126,6 +127,7 @@ async def delete_transaction(id: int): # Query parameter user name
 class User(BaseModel):
     name: str
     balance: int
+    photo: bytes
 
 # class UserList(BaseModel):
 #     users: list[User]
@@ -134,16 +136,21 @@ class User(BaseModel):
 async def get_users() -> list[User]:
     # Fetch users from database
     cursor = db.execute(f"SELECT * FROM {DatabaseTables.USERS}")
-    return [User(name=name, balance=balance) for name, balance in cursor.fetchall()]
+
+    users = []
+    for name, balance, photo in cursor.fetchall():
+        users.append(User(name=name, balance=balance, photo=photo))
+    
+    return users
 
 ###############################
 # POST
 # Add new user
 ###############################
 @app.post("/add_user")
-async def add_user(user: User):
+async def add_user(name: Annotated[str, Form()], balance: Annotated[int, Form()], photo: Annotated[bytes, File()]):
     try:
-        db.execute(f"INSERT INTO {DatabaseTables.USERS} ({UserColumns.NAME}, {UserColumns.BALANCE}) VALUES (?,?)", (user.name, user.balance,))
+        db.execute(f"INSERT INTO {DatabaseTables.USERS} ({UserColumns.NAME}, {UserColumns.BALANCE}, {UserColumns.PHOTO}) VALUES (?,?,?)", (name, balance, photo,))
         db.commit()
     except Exception as e:
         raise HTTPException(400, str(e))

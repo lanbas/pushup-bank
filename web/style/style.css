@@ -4,7 +4,7 @@
 }
 
 #pu-count-div {
-  width: 60%
+  width: 90%
 }
 
 #pu-count-div p {
@@ -19,8 +19,13 @@
   margin-bottom: 20px;
 }
 
+row {
+  justify-content: center;
+}
+
 #row2 {
   margin: 5vw;
+  justify-content: center;
 } 
 
 .card {
@@ -44,7 +49,7 @@
 }
 
 .card-title {
-  display: inline-block
+  /* display: inline-block */
 }
 
 .delete-user {

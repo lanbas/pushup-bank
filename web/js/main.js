@@ -114,24 +114,24 @@ function populateTxTable(tx_json)
     }
 }
 
-function createCardDiv(user, balance, img_path)
+function createCardDiv(user, balance, img)
 {
     //img-wrapper + img + img-overlay (which includes button)
     // Create all elements needed for card div
     let cardDiv = document.createElement('div');
-    cardDiv.classList.add('card', 'col-sm', 'px-0');
+    cardDiv.classList.add('card', 'col-sm-3', 'px-0');
     cardDiv.id = `card-${user}`;
 
     let imgDiv = document.createElement('img');
     imgDiv.classList.add('card-img-top');
     imgDiv.alt = "Card image";
-    imgDiv.src = img_path;
+    imgDiv.src = `data:image/png;base64,${img}`
 
     let cardBodyDiv = document.createElement('div');
     cardBodyDiv.classList.add('card-body', 'text-center');
 
     let nameHeader = document.createElement('h4');
-    nameHeader.classList.add('card-title');
+    nameHeader.classList.add('card-title', 'text-wrap');
     nameHeader.innerText = user;
 
     let cardBalance = document.createElement('p');
@@ -200,7 +200,8 @@ function populateUserCards()
     .then((json) => {
         for (var user of json)
         {
-            let cardDiv = createCardDiv(user['name'], user['balance'], "./img/tom.jpeg"); // TODO: Add img url to database
+            // TODO: Use returned photo from backend
+            let cardDiv = createCardDiv(user['name'], user['balance'], user['photo']);
             userRowDiv.insertAdjacentElement('afterbegin', cardDiv);
         } 
     })
@@ -315,31 +316,44 @@ function dynamicUserFormInfo(event)
     document.getElementById("add-user-cumsum").innerText = (numPushups * (numPushups + 1)) / 2;
 }
 
+// TODO: Handle required fields, handle when missing optional fields
 function addUser(event)
 {
-    // TODO: User already exists + code injection
+    // TODO: Check for user already exists + sanitize fields?
     // code injection?
     event.preventDefault();
 
-    // Get info from form
-    let name = event.target.elements['name'].value;
-    let balance = event.target.elements['balance'].value;
-    let pfpPath = event.target.elements['photo'].value; // TODO
-    
-    fetch("http://" + location.host + "/add_user",{
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({name: name, balance: balance}) // TODO: functionalize to make standard
-    }).then((response) => {
-        populateUserCards(); // Refetches users and builds cards
+    // Setup reader and do all request work in reader callback
+    // TODO: Is this really the only way to do this? Seems like I can't even await because it doesn't return a promise, it's in result attribute
+    let reader = new FileReader();
+    reader.addEventListener("load", () => {
+        let photo = reader.result.split(',')[1]; // Remove data:image/{type};base64, leading content
+        let name = event.target.elements['name'].value;
+        let balance = event.target.elements['balance'].value;
 
-        // TODO: toast notf
+        // Add data to form
+        let formData = new FormData();
+        formData.append("name", name);
+        formData.append("balance", balance);
+        formData.append("photo", photo);
+
+        // Send form as request
+        fetch("http://" + location.host + "/add_user",{
+            method: "POST",
+            body: formData
+        }).then((response) => {
+            console.log(response);
+            populateUserCards(); // Refetches users and builds cards
+
+            // TODO: toast notif
+        })
+        .catch((error) => {
+            console.log(error);
+            // TODO: toast notif
+        });
     })
-    .catch((error) => {
-        // TODO: toast notif
-    });
+
+    reader.readAsDataURL(event.target.elements['photo'].files[0]);    
 }
 
 function deleteTransaction(event, id)

@@ -14,3 +14,4 @@ class TransactionColumns(str, Enum):
 class UserColumns(str, Enum):
     NAME = "name"
     BALANCE = "balance"
+    PHOTO = "photo"

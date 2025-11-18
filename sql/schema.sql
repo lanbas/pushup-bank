@@ -2,8 +2,8 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE users(
     name VARCHAR(64) PRIMARY KEY NOT NULL UNIQUE,
-    balance INTEGER NOT NULL
-    -- picture VARCHAR(128) NOT NULL
+    balance INTEGER NOT NULL,
+    photo BLOB NOT NULL
 );
 
 CREATE TABLE transactions(
