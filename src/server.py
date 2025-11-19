@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Annotated
 
 from db_types import *
+from utils import *
 
 import datetime
 import os
@@ -28,6 +29,7 @@ app.add_middleware(
 DB_FILE = os.path.join(APP_ROOT, "sql", APP_NAME + ".db")
 db = sqlite3.connect(DB_FILE)
 db.execute("PRAGMA foreign_keys = ON;")
+
 
 
 ''' Note on transactions 
@@ -148,9 +150,11 @@ async def get_users() -> list[User]:
 # Add new user
 ###############################
 @app.post("/add_user")
-async def add_user(name: Annotated[str, Form()], balance: Annotated[int, Form()], photo: Annotated[bytes, File()]):
+async def add_user(name: Annotated[str, Form()], balance: Annotated[int, Form()], photo: Annotated[bytes, File()] = None):
     try:
-        db.execute(f"INSERT INTO {DatabaseTables.USERS} ({UserColumns.NAME}, {UserColumns.BALANCE}, {UserColumns.PHOTO}) VALUES (?,?,?)", (name, balance, photo,))
+        import pdb; pdb.set_trace();
+        photoBytes = photo if photo else DEFAULT_PROFILE_PIC 
+        db.execute(f"INSERT INTO {DatabaseTables.USERS} ({UserColumns.NAME}, {UserColumns.BALANCE}, {UserColumns.PHOTO}) VALUES (?,?,?)", (name, balance, photoBytes,))
         db.commit()
     except Exception as e:
         raise HTTPException(400, str(e))

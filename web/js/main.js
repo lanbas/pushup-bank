@@ -1,5 +1,7 @@
 const TX_TABLE_ENTRY_PREFIX = "tx-table-"
 
+const DEFAULT_PROFILE_PIC = "./img/default_pfp.png"
+
 const DAYS_PER_MONTH = {
     0: 0,
     1: 31,
@@ -150,6 +152,14 @@ function createCardDiv(user, balance, img)
     txInput.classList.add('form-control');
     txInput.type = 'text';
     txInput.placeholder = 'Enter pushups';
+    txInput.required = true;
+    txInput.pattern = "-?[0-9]+";
+    txInput.addEventListener("input", (event) => {
+        if (txInput.validity.patternMismatch)
+            txInput.setCustomValidity("Please enter a positive or negative whole number.");
+        else
+            txInput.setCustomValidity("");
+    });
 
     let submitButton = document.createElement('button');
     submitButton.classList.add('btn', 'btn-success')
@@ -222,6 +232,14 @@ function initialize()
     let dateStr = date.toLocaleString('default', { month: 'long'}) + " " + date.getDate() + DAY_SUFFIXES[(date.getDate() % 10)] + ", " + date.getFullYear();
     populateDailyCounter(dailyPushups, dateStr)
 
+    // Setup user modal form validation
+    let userNameElt = document.getElementById("add-user-name");
+    userNameElt.addEventListener("input", (event) => {
+        if (userNameElt.validity.patternMismatch)
+            userNameElt.setCustomValidity("Please enter an alphabetical name (less than 32 characters).");
+        else 
+            userNameElt.setCustomValidity("");
+    })
 
     // Fill transactions table
     fetch("http://" + location.host + "/transactions",{
@@ -326,15 +344,17 @@ function addUser(event)
     // Setup reader and do all request work in reader callback
     // TODO: Is this really the only way to do this? Seems like I can't even await because it doesn't return a promise, it's in result attribute
     let reader = new FileReader();
+    let formData = new FormData();
+    let name = event.target.elements['name'].value;
+    let balance = event.target.elements['balance'].value ? event.target.elements['balance'].value : 0;
+    formData.append("name", name);
+    formData.append("balance", balance);
+
+
     reader.addEventListener("load", () => {
         let photo = reader.result.split(',')[1]; // Remove data:image/{type};base64, leading content
-        let name = event.target.elements['name'].value;
-        let balance = event.target.elements['balance'].value;
 
-        // Add data to form
-        let formData = new FormData();
-        formData.append("name", name);
-        formData.append("balance", balance);
+        // Add photo to form
         formData.append("photo", photo);
 
         // Send form as request
@@ -353,7 +373,26 @@ function addUser(event)
         });
     })
 
-    reader.readAsDataURL(event.target.elements['photo'].files[0]);    
+    let photoBlob = event.target.elements['photo'].files[0];
+    if (photoBlob)
+        reader.readAsDataURL(photoBlob);
+    else 
+    {
+        // Send form as request
+        fetch("http://" + location.host + "/add_user",{
+            method: "POST",
+            body: formData
+        }).then((response) => {
+            console.log(response);
+            populateUserCards(); // Refetches users and builds cards
+
+            // TODO: toast notif
+        })
+        .catch((error) => {
+            console.log(error);
+            // TODO: toast notif
+        });
+    }
 }
 
 function deleteTransaction(event, id)

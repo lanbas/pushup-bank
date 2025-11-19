@@ -73,15 +73,15 @@
         <form id="add-user-form">
           <div class="modal-body">
             <div class="mb-3 mt-3">
-              <label for="name" class="form-label">Name:</label>
-              <input type="name" class="form-control" id="add-user-name" placeholder="Enter name" name="name">
+              <label for="name" class="form-label">Name:<span class="required-field">*</span></label>
+              <input type="text" class="form-control" id="add-user-name" placeholder="Enter name" name="name" required pattern="[ A-Za-z0-9\-.]{1,32}"/>
             </div>
             <div class="mb-3">
-              <label for="balance" class="form-label">Starting balance:</label>
-              <input type="balance" class="form-control" id="add-user-balance" placeholder="Enter balance" name="balance">
+              <label for="balance" class="form-label">Starting Balance:</label>
+              <input type="number" class="form-control" id="add-user-balance" placeholder="Enter balance" name="balance" min="0" value="0">
             </div>
             <div class="mb-3">
-              <label for="photo" class="form-label">Upload user photo:</label>
+              <label for="photo" class="form-label">Profile Picture:</label>
               <input type="file" class="form-control" id="add-user-photo" name="photo" accept="image/png, image/jpeg" />
             </div>
             <div id="d-flex text-center">
@@ -91,7 +91,7 @@
     
           <!-- Modal footer -->
           <div class="modal-footer">
-            <button id="add-user-btn" type="submit" class="btn btn-primary" data-bs-dismiss="modal">Add User</button>
+            <button id="add-user-btn" type="submit" class="btn btn-primary">Add User</button>
           </div>
         </form>
   
